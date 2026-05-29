@@ -6,6 +6,7 @@ Drop your pictures in THIS "images" folder and name them exactly:
     kuromi1.png
     kuromi2.png
     kuromi3.png
+    kuromi4.png  <-- NEW: balances the lower-left of the thank-you page
 
 They'll automatically show up on the "Thank you" page of the website.
 (If a name doesn't match, that slot just shows a cute placeholder instead.)
