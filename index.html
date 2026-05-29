@@ -208,6 +208,9 @@
   }
   .btn-ghost:hover{ color:var(--cream); border-color:var(--cream); }
   .btn-no.runaway{ position:fixed; z-index:50; transition: left .26s cubic-bezier(.34,1.4,.64,1), top .26s cubic-bezier(.34,1.4,.64,1); }
+  /* confirm button stays hidden until she has picked BOTH a game and a time */
+  #confirmBtn{ display:none; }
+  #confirmBtn.show{ display:inline-block; animation: rise .45s cubic-bezier(.22,.7,.3,1) both; }
 
   .hint{ margin-top:20px; font-size:12.5px; color:rgba(246,241,230,.5); font-style:italic; letter-spacing:.02em; }
 
@@ -425,7 +428,7 @@
 
     <div class="field-label">⏰ when?</div>
     <div class="time-row">
-      <button class="time-chip selected" data-when="right now">right now</button>
+      <button class="time-chip" data-when="right now">right now</button>
       <button class="time-chip" data-when="tonight">tonight</button>
       <button class="time-chip" data-when="pick">pick a time</button>
     </div>
@@ -456,26 +459,24 @@
 
 <script>
   /* ============================================================
-     NOTIFY ME WHEN SHE CONFIRMS  (free email via Web3Forms)
-       1) Go to  https://web3forms.com  →  type YOUR email  →  copy the "Access Key"
-       2) Paste that key between the quotes below (replace the placeholder text)
-     Done — when she taps "omg, for real????" an email lands in your inbox
-     telling you what she picked and when. (Leaving the placeholder = no email,
-     and the site still works perfectly.)
+     NOTIFY ME WHEN SHE CONFIRMS  (Discord webhook)
+       1) En Discord: tu servidor → Ajustes del canal (⚙) → Integraciones →
+          Webhooks → "Nuevo webhook" → "Copiar URL del webhook"
+       2) Pega esa URL entre las comillas de abajo (reemplaza el placeholder)
+     Listo: cuando ella pulse "omg, for real????" te llega un mensaje a Discord
+     con lo que eligió. (Si dejas el placeholder, no envía y el sitio sigue igual.)
      ============================================================ */
-  const NOTIFY_KEY = "978aff9e-c240-4f7b-8b78-d545b106ae0f";
+  const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1510007196610461737/niaFoIJdipfDsAkio_EzyN8_SU6OVWfLwKwcXzGm_3D_glNgIeuHxlvP3sh9vvaUIMIR";
   function notifyMe(game, when){
-    if(!NOTIFY_KEY || NOTIFY_KEY.indexOf("PASTE")===0) return;   // key not added yet → skip quietly
-    fetch("https://api.web3forms.com/submit",{
+    if(!DISCORD_WEBHOOK.startsWith("https://")) return;          // webhook no puesto → no envía
+    fetch(DISCORD_WEBHOOK,{
       method:"POST",
-      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
-        access_key:NOTIFY_KEY,
-        subject:"Twinnie said YES! 💜🖤",
-        from_name:"Are We Hopping Twinnie",
-        message:"Twinnie wants to hop on! 🎉\n\nPlaying: "+game+"\nWhen: "+when
+        username:"Are We Hopping Twinnie ☾",
+        content:"💜🖤 **Twinnie said YES!** 🎉\n\n**Jugando:** "+game+"\n**Cuándo:** "+when
       })
-    }).catch(()=>{});   // never let a network hiccup break her experience
+    }).catch(()=>{});   // never let a hiccup break her experience
   }
 
   /* ---------- generate star field ---------- */
@@ -644,8 +645,17 @@
   document.getElementById("toPlanBtn").addEventListener("click",()=>show("step-plan"));
 
   /* ---------- plan: game + time ---------- */
-  let chosenGame=null, chosenWhen="right now";
+  let chosenGame=null, chosenWhen=null;
   const reaction=document.getElementById("reaction");
+  const confirmBtn=document.getElementById("confirmBtn");
+  const timePick=document.getElementById("timePick");
+
+  // the "omg, for real????" button only appears once she has picked BOTH a game AND a time
+  function refreshConfirm(){
+    const timeOk = chosenWhen && (chosenWhen!=="pick" || !!timePick.value);
+    confirmBtn.classList.toggle("show", !!chosenGame && !!timeOk);
+  }
+
   document.querySelectorAll("#gameOptions .opt").forEach(opt=>{
     opt.addEventListener("click",e=>{
       document.querySelectorAll("#gameOptions .opt").forEach(o=>o.classList.remove("selected"));
@@ -661,6 +671,7 @@
       }else{
         reaction.classList.remove("show"); reaction.innerHTML="";
       }
+      refreshConfirm();
     });
   });
 
@@ -671,8 +682,10 @@
       chip.classList.add("selected");
       chosenWhen=chip.dataset.when;
       timeWrap.style.display = chip.dataset.when==="pick" ? "block" : "none";
+      refreshConfirm();
     });
   });
+  timePick.addEventListener("input", refreshConfirm);
 
   /* ---------- confirm ---------- */
   document.getElementById("confirmBtn").addEventListener("click",e=>{
@@ -689,12 +702,13 @@
 
   /* ---------- restart ---------- */
   document.getElementById("restartBtn").addEventListener("click",()=>{
-    chosenGame=null; chosenWhen="right now";
+    chosenGame=null; chosenWhen=null;
     askLive=true; resetNo();
     document.querySelectorAll(".opt,.time-chip").forEach(x=>x.classList.remove("selected"));
-    document.querySelector('.time-chip[data-when="right now"]').classList.add("selected");
     reaction.classList.remove("show"); reaction.innerHTML="";
     timeWrap.style.display="none";
+    if(timePick) timePick.value="";
+    confirmBtn.classList.remove("show");
     show("step-ask");
   });
 
