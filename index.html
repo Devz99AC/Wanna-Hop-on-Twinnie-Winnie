@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wanna Hop On, Twinnie? 🖤💜</title>
+<style>
+  /* ============ Kuromi palette ============ */
+  :root{
+    --bg1:#1a1126;        /* deep night purple */
+    --bg2:#2a1840;        /* lighter purple */
+    --kuromi:#6c3fb5;     /* kuromi purple */
+    --kuromi-soft:#9b6fe0;
+    --pink:#ff8fcf;       /* her pink */
+    --pink-soft:#ffc6e8;
+    --skull:#f4ecff;      /* off white */
+    --ink:#15091f;
+    --accent:#ff4f9a;
+  }
+
+  /* ============ Custom cursors ============ */
+  /* little purple heart cursor */
+  html, body{
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 28C16 28 4 20 4 11.5C4 7.4 7.1 4 11 4c2.3 0 4.1 1.2 5 3c0.9-1.8 2.7-3 5-3 3.9 0 7 3.4 7 7.5C28 20 16 28 16 28z' fill='%239b6fe0' stroke='%23ff8fcf' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, auto;
+  }
+  /* sparkle pointer for clickable things */
+  button, a, .clicky{
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 3l2.4 7.2L26 13l-7.6 2.4L16 23l-2.4-7.6L6 13l7.6-2.8z' fill='%23ff8fcf' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E") 16 16, pointer;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: "Comic Sans MS", "Segoe UI", system-ui, sans-serif;
+    color:var(--skull);
+    background: radial-gradient(circle at 20% 20%, var(--bg2), var(--bg1) 60%);
+    overflow-x:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  /* floating background skulls + hearts */
+  .floaty{
+    position:fixed;
+    top:-40px;
+    font-size:22px;
+    opacity:.35;
+    animation: fall linear infinite;
+    pointer-events:none;
+    z-index:0;
+    user-select:none;
+  }
+  @keyframes fall{
+    0%{ transform:translateY(-10vh) rotate(0deg); }
+    100%{ transform:translateY(110vh) rotate(360deg); }
+  }
+
+  /* ============ Card ============ */
+  .card{
+    position:relative;
+    z-index:2;
+    width:min(620px, 94vw);
+    background: linear-gradient(160deg, rgba(60,35,95,.92), rgba(34,20,55,.95));
+    border:3px solid var(--kuromi-soft);
+    border-radius:28px;
+    padding:38px 30px 42px;
+    box-shadow: 0 0 0 6px rgba(255,143,207,.18), 0 24px 60px rgba(0,0,0,.55);
+    text-align:center;
+    animation: pop .5s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  @keyframes pop{ from{ transform:scale(.8); opacity:0;} to{ transform:scale(1); opacity:1;} }
+
+  .crown{ font-size:46px; line-height:1; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
+
+  h1{
+    margin:.4em 0 .2em;
+    font-size: clamp(26px, 5vw, 40px);
+    color:var(--pink-soft);
+    text-shadow: 0 2px 0 var(--kuromi), 0 0 18px rgba(255,143,207,.5);
+  }
+  p.lead{ font-size: clamp(16px,2.6vw,20px); color:var(--skull); opacity:.92; margin:.2em 0 1.4em; }
+
+  /* ============ Buttons ============ */
+  .btn-row{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; align-items:center; }
+
+  .btn{
+    border:none;
+    border-radius:999px;
+    padding:16px 34px;
+    font-size:20px;
+    font-weight:bold;
+    font-family:inherit;
+    color:white;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{ transform:scale(.95); }
+
+  .btn-yes{
+    background: linear-gradient(135deg, var(--pink), var(--accent));
+    box-shadow: 0 8px 0 #c92e74, 0 12px 22px rgba(255,79,154,.45);
+  }
+  .btn-yes:hover{ transform:translateY(-3px) scale(1.05); }
+
+  .btn-no{
+    background: linear-gradient(135deg, #5a4a72, #3b2e54);
+    box-shadow: 0 8px 0 #2a2040;
+  }
+  /* when it goes wild it floats above everything */
+  .btn-no.runaway{
+    position:fixed;
+    z-index:50;
+    transition: top .18s ease, left .18s ease, transform .18s ease;
+  }
+
+  .hint{ margin-top:18px; font-size:13px; opacity:.6; font-style:italic; }
+
+  /* ============ Step visibility ============ */
+  .step{ display:none; }
+  .step.active{ display:block; animation: pop .45s cubic-bezier(.2,1.4,.4,1) both; }
+
+  /* ============ Play picker ============ */
+  .options{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+    gap:12px;
+    margin: 8px 0 22px;
+  }
+  .opt{
+    background: rgba(155,111,224,.18);
+    border:2px solid var(--kuromi-soft);
+    border-radius:18px;
+    padding:16px 10px;
+    font-size:16px;
+    font-weight:bold;
+    color:var(--skull);
+    transition: all .15s ease;
+  }
+  .opt:hover{ background: rgba(255,143,207,.25); transform:translateY(-2px); }
+  .opt.selected{
+    background: linear-gradient(135deg, var(--pink), var(--accent));
+    border-color:#fff;
+    box-shadow:0 0 16px rgba(255,79,154,.6);
+  }
+  .opt .emoji{ display:block; font-size:30px; margin-bottom:6px; }
+
+  .reaction{
+    min-height:0;
+    overflow:hidden;
+    max-height:0;
+    opacity:0;
+    transition: max-height .4s ease, opacity .4s ease, margin .4s ease;
+    font-size: clamp(18px,3vw,24px);
+    font-weight:bold;
+    color:var(--pink-soft);
+    text-shadow:0 0 14px rgba(255,143,207,.6);
+    margin:0;
+  }
+  .reaction.show{
+    max-height:160px;
+    opacity:1;
+    margin:6px 0 4px;
+    animation: pop .4s cubic-bezier(.2,1.4,.4,1) both;
+  }
+
+  .field-label{
+    text-align:left;
+    font-weight:bold;
+    color:var(--pink-soft);
+    margin:18px 0 8px;
+    font-size:15px;
+  }
+
+  .time-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:8px; }
+  .time-chip{
+    background: rgba(155,111,224,.18);
+    border:2px solid var(--kuromi-soft);
+    border-radius:999px;
+    padding:10px 18px;
+    font-weight:bold;
+    color:var(--skull);
+    font-size:15px;
+    transition: all .15s ease;
+  }
+  .time-chip:hover{ background: rgba(255,143,207,.25); }
+  .time-chip.selected{
+    background: linear-gradient(135deg, var(--pink), var(--accent));
+    border-color:#fff;
+  }
+  input[type="time"]{
+    background: rgba(255,255,255,.12);
+    border:2px solid var(--kuromi-soft);
+    border-radius:14px;
+    color:var(--skull);
+    font-size:16px;
+    padding:10px 14px;
+    font-family:inherit;
+    cursor:pointer;
+  }
+
+  /* ============ Featured "us" photo ============ */
+  .featured{ margin:18px 0 6px; }
+  .big-frame{
+    aspect-ratio:auto;
+    width:min(320px, 80%);
+    margin:0 auto;
+    border:4px solid var(--pink);
+    box-shadow:0 0 0 6px rgba(255,143,207,.18), 0 12px 26px rgba(0,0,0,.5);
+  }
+  .big-frame img{ aspect-ratio:auto; height:auto; max-height:340px; }
+  .caption{
+    margin-top:12px;
+    font-size: clamp(20px,3.4vw,28px);
+    font-weight:bold;
+    color:var(--pink-soft);
+    text-shadow:0 0 16px rgba(255,143,207,.6);
+    animation: wiggle 2.4s ease-in-out infinite;
+  }
+  @keyframes wiggle{
+    0%,100%{ transform:rotate(-2deg); }
+    50%{ transform:rotate(2deg); }
+  }
+
+  /* ============ Kuromi gallery ============ */
+  .gallery{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px,1fr));
+    gap:14px;
+    margin:20px 0 6px;
+  }
+  .frame{
+    aspect-ratio:1/1;
+    border-radius:18px;
+    overflow:hidden;
+    border:3px solid var(--pink);
+    background: rgba(155,111,224,.2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 8px 18px rgba(0,0,0,.4);
+    position:relative;
+  }
+  .frame img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .frame .placeholder{
+    font-size:13px;
+    color:var(--pink-soft);
+    padding:8px;
+    line-height:1.4;
+  }
+  .frame .placeholder .big{ font-size:34px; display:block; margin-bottom:6px; }
+
+  .summary{
+    background: rgba(255,143,207,.12);
+    border:2px dashed var(--pink);
+    border-radius:16px;
+    padding:14px 16px;
+    margin:16px 0;
+    font-size:16px;
+  }
+  .summary b{ color:var(--pink-soft); }
+
+  .small-link{
+    display:inline-block;
+    margin-top:14px;
+    color:var(--kuromi-soft);
+    font-size:13px;
+    text-decoration:underline;
+    background:none; border:none; font-family:inherit;
+  }
+
+  /* confetti hearts burst */
+  .burst{
+    position:fixed; z-index:60; font-size:24px; pointer-events:none;
+    animation: burst-up 1.1s ease-out forwards;
+  }
+  @keyframes burst-up{
+    0%{ transform:translateY(0) scale(.4); opacity:1; }
+    100%{ transform:translateY(-140px) scale(1.3); opacity:0; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===================== STEP 1: the question ===================== -->
+  <div class="card step active" id="step-ask">
+    <div class="crown">👑🖤</div>
+    <h1>Hey Twinnie…<br>wanna hop on &amp; play today?</h1>
+    <p class="lead">be honest with me 🥺💜</p>
+    <div class="btn-row">
+      <button class="btn btn-yes" id="yesBtn">Yes! 💜</button>
+      <button class="btn btn-no" id="noBtn">No</button>
+    </div>
+    <p class="hint">(go on… try to press No 😈)</p>
+  </div>
+
+  <!-- ===================== STEP 2: the surprise ===================== -->
+  <div class="card step" id="step-surprise">
+    <div class="crown">😳💖</div>
+    <h1>OMG… you said YES?!</h1>
+    <p class="lead">I did NOT expect that to actually work 🥹<br>okay okay don't take it back now—</p>
+    <div class="btn-row">
+      <button class="btn btn-yes" id="toPlanBtn">Let's plan it! ✨</button>
+    </div>
+  </div>
+
+  <!-- ===================== STEP 3: what + when ===================== -->
+  <div class="card step" id="step-plan">
+    <div class="crown">🗓️💜</div>
+    <h1>What do you wanna play?</h1>
+    <p class="lead">pick our vibe for today 🎮</p>
+
+    <div class="options" id="gameOptions">
+      <button class="opt" data-game="Roblox 🟥"><span class="emoji">🟥</span>Roblox</button>
+      <button class="opt" data-game="just talking 💬" data-talk="1"><span class="emoji">💬</span>Just talking</button>
+      <button class="opt" data-game="League of Legends ⚔️"><span class="emoji">⚔️</span>League</button>
+      <button class="opt" data-game="whatever you recommend 💞" data-rec="1"><span class="emoji">💞</span>You pick!</button>
+    </div>
+
+    <div class="reaction" id="reaction"></div>
+
+    <div class="field-label">⏰ when?</div>
+    <div class="time-row">
+      <button class="time-chip selected" data-when="right now 🚀">right now 🚀</button>
+      <button class="time-chip" data-when="tonight 🌙">tonight 🌙</button>
+      <button class="time-chip" data-when="pick a time ⤵">pick a time</button>
+    </div>
+    <div class="time-row" id="timeWrap" style="display:none;">
+      <input type="time" id="timePick" />
+    </div>
+
+    <div class="btn-row" style="margin-top:18px;">
+      <button class="btn btn-yes" id="confirmBtn">It's a date! 💌</button>
+    </div>
+  </div>
+
+  <!-- ===================== STEP 4: thank you + Romeo ===================== -->
+  <div class="card step" id="step-thanks">
+    <div class="crown">🥰🖤</div>
+    <h1>Thank you, Twinnie 💜</h1>
+    <div class="summary" id="planSummary">…</div>
+    <p class="lead">you just made my whole day. here's a lil kuromi to seal it 👇</p>
+
+    <!-- Featured: Kuromi + Pompompurin (you two!). Name the file images/us.png -->
+    <div class="featured">
+      <div class="frame big-frame">
+        <img src="images/us.jpg" alt="Kuromi & Pompompurin" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="placeholder" style="display:none;"><span class="big">💜💛</span>add<br>images/us.jpg</div>
+      </div>
+      <div class="caption">us? 👀💜💛</div>
+    </div>
+
+    <!-- Kuromi gallery. Drop photos named kuromi1.png / kuromi2.png / kuromi3.png
+         into the "images" folder next to this file and they'll appear. -->
+    <div class="gallery">
+      <div class="frame">
+        <img src="images/kuromi1.png" alt="Kuromi" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="placeholder" style="display:none;"><span class="big">🖤</span>add<br>images/kuromi1.png</div>
+      </div>
+      <div class="frame">
+        <img src="images/kuromi2.png" alt="Kuromi" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="placeholder" style="display:none;"><span class="big">💜</span>add<br>images/kuromi2.png</div>
+      </div>
+      <div class="frame">
+        <img src="images/kuromi3.png" alt="Kuromi" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="placeholder" style="display:none;"><span class="big">💀</span>add<br>images/kuromi3.png</div>
+      </div>
+    </div>
+
+    <p class="lead" style="margin-top:18px;">see you soon, twinnie winnie 🖤💜</p>
+    <button class="small-link" id="restartBtn">↺ ask me again</button>
+  </div>
+
+<script>
+  /* ---------- floating background ---------- */
+  (function(){
+    const icons = ["🖤","💜","💀","🎀","⭐","👑","💗"];
+    for(let i=0;i<18;i++){
+      const f=document.createElement("div");
+      f.className="floaty";
+      f.textContent=icons[i%icons.length];
+      f.style.left=(Math.random()*100)+"vw";
+      f.style.fontSize=(16+Math.random()*22)+"px";
+      f.style.animationDuration=(7+Math.random()*9)+"s";
+      f.style.animationDelay=(-Math.random()*10)+"s";
+      document.body.appendChild(f);
+    }
+  })();
+
+  /* ---------- step navigation ---------- */
+  function show(id){
+    document.querySelectorAll(".step").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  /* ---------- runaway "No" button ---------- */
+  const noBtn = document.getElementById("noBtn");
+  let dodges = 0;
+  const taunts = ["nope 😜","can't catch me!","try again 💨","heehee","No is broken 🙈","not today 😈","missed me~","keep dreaming 💜"];
+
+  function flee(){
+    noBtn.classList.add("runaway");
+    const w = noBtn.offsetWidth, h = noBtn.offsetHeight;
+    const maxX = Math.max(10, window.innerWidth  - w - 20);
+    const maxY = Math.max(10, window.innerHeight - h - 20);
+    noBtn.style.left = (Math.random()*maxX) + "px";
+    noBtn.style.top  = (Math.random()*maxY) + "px";
+    noBtn.style.transform = "rotate(" + (Math.random()*40-20) + "deg)";
+    dodges++;
+    if(dodges>0) noBtn.textContent = taunts[dodges % taunts.length];
+  }
+  // run on hover AND on attempted tap/click (mobile-friendly)
+  noBtn.addEventListener("mouseover", flee);
+  noBtn.addEventListener("pointerdown", function(e){ e.preventDefault(); flee(); });
+  noBtn.addEventListener("touchstart", function(e){ e.preventDefault(); flee(); }, {passive:false});
+  noBtn.addEventListener("click", function(e){ e.preventDefault(); flee(); });
+
+  /* ---------- hearts burst ---------- */
+  function heartsBurst(x,y){
+    const hs=["💜","🖤","💖","✨","🎀"];
+    for(let i=0;i<12;i++){
+      const b=document.createElement("div");
+      b.className="burst";
+      b.textContent=hs[i%hs.length];
+      b.style.left=(x + (Math.random()*120-60))+"px";
+      b.style.top =(y + (Math.random()*30-15))+"px";
+      document.body.appendChild(b);
+      setTimeout(()=>b.remove(),1200);
+    }
+  }
+
+  /* ---------- YES ---------- */
+  document.getElementById("yesBtn").addEventListener("click", function(e){
+    heartsBurst(e.clientX, e.clientY);
+    // tidy the runaway button if it escaped
+    noBtn.classList.remove("runaway");
+    setTimeout(()=>show("step-surprise"), 250);
+  });
+
+  document.getElementById("toPlanBtn").addEventListener("click", ()=>show("step-plan"));
+
+  /* ---------- plan: game + time selection ---------- */
+  let chosenGame = null;
+  let chosenWhen = "right now 🚀";
+
+  const reaction = document.getElementById("reaction");
+  document.querySelectorAll("#gameOptions .opt").forEach(opt=>{
+    opt.addEventListener("click", (e)=>{
+      document.querySelectorAll("#gameOptions .opt").forEach(o=>o.classList.remove("selected"));
+      opt.classList.add("selected");
+      chosenGame = opt.dataset.game;
+
+      if(opt.dataset.talk){
+        reaction.innerHTML = "OMG… you wanna <b>talk</b> with me?? 🥹💬<br>wiiiii 💜🖤✨";
+        reaction.classList.add("show");
+        heartsBurst(e.clientX, e.clientY);
+      }else if(opt.dataset.rec){
+        reaction.innerHTML = "eee surprise me then~ i trust your taste 😌💞";
+        reaction.classList.add("show");
+      }else{
+        reaction.classList.remove("show");
+        reaction.innerHTML = "";
+      }
+    });
+  });
+
+  const timeWrap = document.getElementById("timeWrap");
+  document.querySelectorAll(".time-chip").forEach(chip=>{
+    chip.addEventListener("click", ()=>{
+      document.querySelectorAll(".time-chip").forEach(c=>c.classList.remove("selected"));
+      chip.classList.add("selected");
+      chosenWhen = chip.dataset.when;
+      if(chip.dataset.when.startsWith("pick")){
+        timeWrap.style.display="flex";
+      }else{
+        timeWrap.style.display="none";
+      }
+    });
+  });
+
+  /* ---------- confirm ---------- */
+  document.getElementById("confirmBtn").addEventListener("click", function(e){
+    const game = chosenGame || "anything w/ you 💞";
+    let when = chosenWhen;
+    const t = document.getElementById("timePick").value;
+    if(when.startsWith("pick")) when = t ? ("at " + t + " ⏰") : "pick a time ⤵ (you forgot to set it 😅 — surprise me!)";
+
+    document.getElementById("planSummary").innerHTML =
+      "we're playing <b>" + game + "</b><br>" + when;
+    heartsBurst(e.clientX, e.clientY);
+    setTimeout(()=>show("step-thanks"), 250);
+  });
+
+  /* ---------- restart ---------- */
+  document.getElementById("restartBtn").addEventListener("click", ()=>{
+    chosenGame=null; chosenWhen="right now 🚀"; dodges=0;
+    noBtn.classList.remove("runaway");
+    noBtn.removeAttribute("style");
+    noBtn.textContent="No";
+    document.querySelectorAll(".opt,.time-chip").forEach(x=>x.classList.remove("selected"));
+    reaction.classList.remove("show"); reaction.innerHTML="";
+    document.querySelector('.time-chip[data-when="right now 🚀"]').classList.add("selected");
+    timeWrap.style.display="none";
+    show("step-ask");
+  });
+</script>
+</body>
+</html>

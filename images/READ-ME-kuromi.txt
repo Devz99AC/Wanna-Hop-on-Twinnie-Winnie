@@ -1,0 +1,11 @@
+💜 Photo slots 💜
+
+Drop your pictures in THIS "images" folder and name them exactly:
+
+    us.jpg       <-- the Kuromi + Pompompurin picture (you two!) - shown big with the "us?" caption
+    kuromi1.png
+    kuromi2.png
+    kuromi3.png
+
+They'll automatically show up on the "Thank you" page of the website.
+(If a name doesn't match, that slot just shows a cute placeholder instead.)
